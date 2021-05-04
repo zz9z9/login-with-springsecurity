@@ -11,8 +11,7 @@ import java.util.Set;
 @Configuration
 public class OAuth2LoginSecurityConfig extends WebSecurityConfigurerAdapter {
 
-    @Override
-    protected void configure(HttpSecurity http) throws Exception {
+    private OidcUserService getgoogleUserService() {
         Set<String> googleScopes = new HashSet<>();
         googleScopes.add("https://www.googleapis.com/auth/userinfo.email");
         googleScopes.add("https://www.googleapis.com/auth/userinfo.profile");
@@ -20,12 +19,25 @@ public class OAuth2LoginSecurityConfig extends WebSecurityConfigurerAdapter {
         OidcUserService googleUserService = new OidcUserService();
         googleUserService.setAccessibleScopes(googleScopes);
 
+        return googleUserService;
+    }
+
+    @Override
+    protected void configure(HttpSecurity http) throws Exception {
         http
-                .authorizeRequests(authorizeRequests -> authorizeRequests
-                        .mvcMatchers("/home").permitAll()
-                        .anyRequest().authenticated())
-                    .oauth2Login(oauthLogin -> oauthLogin
-                        .userInfoEndpoint()
-                        .oidcUserService(googleUserService));
+                .authorizeRequests()
+                    .antMatchers("/login","/").permitAll()
+                    .anyRequest().authenticated()
+                    .and()
+                .oauth2Login()
+                    .loginPage("/login")
+                    .defaultSuccessUrl("/member/main")
+                    .and()
+                .logout()
+                    .logoutSuccessUrl("/")
+                    .and()
+                .oauth2Login()
+                    .userInfoEndpoint()
+                    .oidcUserService(getgoogleUserService());
     }
 }
