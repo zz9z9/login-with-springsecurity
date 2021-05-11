@@ -1,6 +1,8 @@
 package com.springstudy.project.myweddingplanner.controller;
 
+import com.springstudy.project.myweddingplanner.dto.MemberDTO;
 import com.springstudy.project.myweddingplanner.security.jwt.JwtProvider;
+import com.springstudy.project.myweddingplanner.service.spec.MemberService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.oauth2.core.user.OAuth2User;
@@ -20,6 +22,7 @@ import java.util.Map;
 public class LoginController {
 
     private final JwtProvider jwtProvider;
+    private final MemberService memberService;
 
     @GetMapping("")
     public String login(){
@@ -28,7 +31,6 @@ public class LoginController {
 
     @GetMapping("/success")
     public String success(@RequestBody Map<String, String> params, HttpServletResponse response) {
-
         return "redirect:/member/main";
     }
 
@@ -48,6 +50,8 @@ public class LoginController {
 
             response.addCookie(cookie);
         }
+
+        memberService.register(new MemberDTO(email, name,"default"));
 
         return "redirect:/member/main";
     }
