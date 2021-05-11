@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+</head>
+<body>
+    <form th:action="@{/member/signup/complete}" method="post">
+        <table border=1>
+            <tr>
+                <td>이메일</td>
+                <td>
+                    <input type="text" id="email" name="email">
+                </td>
+            </tr>
+            <tr>
+                <td>이메일 확인</td>
+                <td>
+                    <input type="text" id="emailConfirm" name="emailConfirm">
+                </td>
+            </tr>
+            <tr>
+                <td>비밀번호</td>
+                <td>
+                    <input type="password" id="password" name="password">
+                </td>
+            </tr>
+            <tr>
+                <td>비밀번호 확인</td>
+                <td>
+                    <input type="text" id="passwordConfirm" name="passwordConfirm">
+                </td>
+            </tr>
+        </table>
+        <button type="submit">완료</button>
+    </form>
+</body>
+</html>
