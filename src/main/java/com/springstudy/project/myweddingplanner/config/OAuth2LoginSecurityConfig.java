@@ -52,9 +52,4 @@ public class OAuth2LoginSecurityConfig extends WebSecurityConfigurerAdapter {
     public void configure(WebSecurity web) throws Exception {
          web.ignoring().antMatchers("/login", "/member/signup","/");
     }
-
-    @Bean
-    public PasswordEncoder passwordEncoder() {
-        return new BCryptPasswordEncoder();
-    }
 }
