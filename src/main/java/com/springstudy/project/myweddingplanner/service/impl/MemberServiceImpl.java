@@ -6,12 +6,15 @@ import com.springstudy.project.myweddingplanner.repository.entity.Member;
 import com.springstudy.project.myweddingplanner.service.spec.MemberService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.BeanUtils;
+import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.core.userdetails.UserDetailsService;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 @RequiredArgsConstructor
 @Service
-public class MemberServiceImpl implements MemberService {
+public class MemberServiceImpl implements MemberService, UserDetailsService {
 
     private final PasswordEncoder passwordEncoder;
     private final MemberRepository memberRepository;
@@ -27,5 +30,10 @@ public class MemberServiceImpl implements MemberService {
         memberRepository.save(member);
 
         return member.getEmail();
+    }
+
+    @Override
+    public UserDetails loadUserByUsername(String email) throws UsernameNotFoundException {
+        return memberRepository.findById(email).orElseGet(Member::new);
     }
 }
