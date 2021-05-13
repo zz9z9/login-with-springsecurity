@@ -1,4 +1,4 @@
-package com.springstudy.project.myweddingplanner.service;
+package com.springstudy.project.myweddingplanner.security;
 
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.core.convert.converter.Converter;
