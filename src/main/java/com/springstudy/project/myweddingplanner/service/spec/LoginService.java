@@ -5,5 +5,7 @@ import com.springstudy.project.myweddingplanner.dto.MemberDTO;
 import javax.servlet.http.HttpServletResponse;
 
 public interface LoginService {
-    public void processWhenLoginSuccess(MemberDTO member, HttpServletResponse response);
+    public void processOAuthLoginSuccess(MemberDTO member, HttpServletResponse response);
+
+    public void processFormLoginSuccess(MemberDTO member, HttpServletResponse response);
 }
