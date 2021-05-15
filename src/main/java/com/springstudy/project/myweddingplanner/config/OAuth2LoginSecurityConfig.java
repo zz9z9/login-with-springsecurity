@@ -1,17 +1,14 @@
 package com.springstudy.project.myweddingplanner.config;
 
+import com.springstudy.project.myweddingplanner.security.CustomOAuth2UserService;
 import com.springstudy.project.myweddingplanner.security.jwt.JwtAuthenticationFilter;
 import com.springstudy.project.myweddingplanner.security.jwt.JwtProvider;
-import com.springstudy.project.myweddingplanner.security.CustomOAuth2UserService;
 import lombok.RequiredArgsConstructor;
-import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.builders.WebSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
-import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
-import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
 @RequiredArgsConstructor
@@ -50,6 +47,6 @@ public class OAuth2LoginSecurityConfig extends WebSecurityConfigurerAdapter {
 
     @Override
     public void configure(WebSecurity web) throws Exception {
-         web.ignoring().antMatchers("/login", "/member/signup","/");
+         web.ignoring().antMatchers("/login/**", "/member/signup","/");
     }
 }
