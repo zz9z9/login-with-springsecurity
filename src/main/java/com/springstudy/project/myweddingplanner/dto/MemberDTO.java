@@ -9,6 +9,14 @@ public class MemberDTO {
     private String name;
     private String password;
 
+    public MemberDTO() {
+    }
+
+    public MemberDTO(String email, String password) {
+        this.email = email;
+        this.password = password;
+    }
+
     public MemberDTO(String email, String name, String password) {
         this.email = email;
         this.name = name;

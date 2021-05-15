@@ -4,6 +4,7 @@ import com.springstudy.project.myweddingplanner.dto.MemberDTO;
 import com.springstudy.project.myweddingplanner.repository.MemberRepository;
 import com.springstudy.project.myweddingplanner.repository.entity.Member;
 import com.springstudy.project.myweddingplanner.service.spec.MemberService;
+import com.springstudy.project.myweddingplanner.util.EntityDtoConverter;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.BeanUtils;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -18,6 +19,12 @@ public class MemberServiceImpl implements MemberService, UserDetailsService {
 
     private final PasswordEncoder passwordEncoder;
     private final MemberRepository memberRepository;
+
+    @Override
+    public MemberDTO find(String email) {
+        Member member = memberRepository.findById(email).orElseGet(null);
+        return EntityDtoConverter.convertEntityToDto(member, new MemberDTO());
+    }
 
     @Override
     public String register(MemberDTO memberDTO) {
