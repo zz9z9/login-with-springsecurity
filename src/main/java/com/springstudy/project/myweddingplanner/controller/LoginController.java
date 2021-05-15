@@ -28,11 +28,10 @@ public class LoginController {
     @GetMapping("/form/success")
     public String success(@RequestBody Map<String, String> params, HttpServletResponse response) {
         String userEmail = params.get("email");
-        String userName = params.get("name");
         String userPw = params.get("password");
-        MemberDTO member = new MemberDTO(userEmail, userName, userPw);
+        MemberDTO member = new MemberDTO(userEmail, userPw);
 
-        loginService.processWhenLoginSuccess(member, response);
+        loginService.processFormLoginSuccess(member, response);
 
         return "redirect:/member/main";
     }
@@ -44,7 +43,7 @@ public class LoginController {
         String defaultPwForOAuthUser = "default"; // oauth로 로그인 한 유저의 pw는 알 수 없으므로
         MemberDTO member = new MemberDTO(userEmail, userName, defaultPwForOAuthUser);
 
-        loginService.processWhenLoginSuccess(member, response);
+        loginService.processOAuthLoginSuccess(member, response);
 
         return "redirect:/member/main";
     }
