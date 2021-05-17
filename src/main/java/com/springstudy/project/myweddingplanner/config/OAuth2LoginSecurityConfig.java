@@ -2,7 +2,7 @@ package com.springstudy.project.myweddingplanner.config;
 
 import com.springstudy.project.myweddingplanner.security.CustomOAuth2UserService;
 import com.springstudy.project.myweddingplanner.security.jwt.JwtAuthenticationFilter;
-import com.springstudy.project.myweddingplanner.security.jwt.JwtProvider;
+import com.springstudy.project.myweddingplanner.security.jwt.JwtManager;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -16,7 +16,7 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 @EnableWebSecurity
 public class OAuth2LoginSecurityConfig extends WebSecurityConfigurerAdapter {
 
-    final private JwtProvider jwtProvider;
+    final private JwtManager jwtManager;
 
     @Override
     protected void configure(HttpSecurity http) throws Exception {
@@ -42,7 +42,7 @@ public class OAuth2LoginSecurityConfig extends WebSecurityConfigurerAdapter {
                     .logout()
                         .logoutSuccessUrl("/")
                 .and()
-                    .addFilterBefore(new JwtAuthenticationFilter(jwtProvider), UsernamePasswordAuthenticationFilter.class);
+                    .addFilterBefore(new JwtAuthenticationFilter(jwtManager), UsernamePasswordAuthenticationFilter.class);
     }
 
     @Override
