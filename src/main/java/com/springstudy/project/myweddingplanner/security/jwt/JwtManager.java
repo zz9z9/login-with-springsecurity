@@ -6,6 +6,8 @@ import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.data.redis.core.ValueOperations;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -15,6 +17,7 @@ import org.springframework.stereotype.Component;
 import javax.annotation.PostConstruct;
 import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
+import java.time.Duration;
 import java.util.Base64;
 import java.util.Date;
 import java.util.Map;
@@ -26,12 +29,16 @@ public class JwtManager {
     @Value("jwt.secret_key")
     private String secretKey;
 
+    public static String ACCESS_TOKEN_NAME = "ACCESS_TOKEN_NAME";
+    public static String REFRESH_TOKEN_NAME = "ACCESS_TOKEN_NAME";
+
     private final long ONE_MINUTE = 60 * 1000L;
     private final long ONE_DAY = ONE_MINUTE * 60 * 24;
     private final long ACCESS_TOKEN_DURATION = 30 * ONE_MINUTE;
     private final long REFRESH_TOKEN_DURATION = 30 * ONE_DAY;
 
     private final UserDetailsService userDetailsService;
+    private final RedisTemplate redisTemplate;
 
     // 객체 초기화, secretKey를 Base64로 인코딩한다.
     @PostConstruct
@@ -39,7 +46,7 @@ public class JwtManager {
         secretKey = Base64.getEncoder().encodeToString(secretKey.getBytes());
     }
 
-    public String getAccessToken(String uniqueValue, Map<String,Object> params) {
+    public String generateAccessToken(String uniqueValue, Map<String,Object> params) {
         Claims claims = Jwts.claims().setSubject(uniqueValue); // JWT payload 에 저장되는 정보단위
         for(String key : params.keySet()) {
             claims.put(key, params.get(key));
@@ -48,7 +55,7 @@ public class JwtManager {
         return getJwt(claims, ACCESS_TOKEN_DURATION);
     }
 
-    public String getRefreshToken() {
+    public String generateRefreshToken() {
         return getJwt(null, REFRESH_TOKEN_DURATION);
     }
 
@@ -65,22 +72,21 @@ public class JwtManager {
 
     // JWT 토큰에서 인증 정보 조회
     public Authentication getAuthentication(String token) {
-        UserDetails userDetails = userDetailsService.loadUserByUsername(this.getUserPk(token));
+        UserDetails userDetails = userDetailsService.loadUserByUsername(this.getUserIdentifier(token));
         return new UsernamePasswordAuthenticationToken(userDetails, "", userDetails.getAuthorities());
     }
 
-    // 토큰에서 회원 정보 추출
-    public String getUserPk(String token) {
+    public String getUserIdentifier(String token) {
         return Jwts.parser().setSigningKey(secretKey).parseClaimsJws(token).getBody().getSubject();
     }
 
-    public String resolveToken(HttpServletRequest request) {
+    public String getTokenByKey(HttpServletRequest request, String key) {
         String getToken = null;
 
         if(request.getCookies()!=null) {
             for(Cookie c : request.getCookies()) {
                 String cookieName = c.getName();
-                if(cookieName.equals("jwt")) {
+                if(cookieName.equals(key)) {
                     getToken = c.getValue();
                     break;
                 }
@@ -91,12 +97,18 @@ public class JwtManager {
     }
 
     // 토큰의 유효성 + 만료일자 확인
-    public boolean validateToken(String jwtToken) {
+    public boolean isNotExpired(String jwtToken) {
         try {
             Jws<Claims> claims = Jwts.parser().setSigningKey(secretKey).parseClaimsJws(jwtToken);
-            return !claims.getBody().getExpiration().before(new Date());
+            return claims.getBody().getExpiration().after(new Date());
         } catch (Exception e) {
             return false;
         }
+    }
+
+    public void saveRefreshTokenInStorage(String key, String refreshToken) {
+        ValueOperations<String,String> valueOperations = redisTemplate.opsForValue();
+        Duration validDuration = Duration.ofSeconds(this.REFRESH_TOKEN_DURATION);
+        valueOperations.set(key, refreshToken, validDuration);
     }
 }

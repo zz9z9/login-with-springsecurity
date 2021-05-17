@@ -5,7 +5,6 @@ import com.springstudy.project.myweddingplanner.security.jwt.JwtManager;
 import com.springstudy.project.myweddingplanner.service.spec.LoginService;
 import com.springstudy.project.myweddingplanner.service.spec.MemberService;
 import lombok.RequiredArgsConstructor;
-import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -21,7 +20,6 @@ public class LoginServiceImpl implements LoginService {
     private final PasswordEncoder passwordEncoder;
     private final JwtManager jwtManager;
     private final MemberService memberService;
-    private final RedisTemplate redisTemplate;
 
     @Override
     public void processOAuthLoginSuccess(MemberDTO member, HttpServletResponse response) {
@@ -37,11 +35,13 @@ public class LoginServiceImpl implements LoginService {
             Map<String, Object> params = new HashMap<>();
             params.put("name", findMember.getName());
 
-            String accessToken = jwtManager.getAccessToken(findMember.getEmail(), params);
-            String refreshToken = jwtManager.getRefreshToken();
+            String accessToken = jwtManager.generateAccessToken(findMember.getEmail(), params);
+            String refreshToken = jwtManager.generateRefreshToken();
 
             setCookie(response, "accessToken", accessToken);
             setCookie(response, "refreshToken", refreshToken);
+
+            jwtManager.saveRefreshTokenInStorage(findMember.getEmail(), refreshToken);
         }
     }
 
@@ -54,13 +54,13 @@ public class LoginServiceImpl implements LoginService {
             Map<String, Object> params = new HashMap<>();
             params.put("name", member.getName());
 
-            String accessToken = jwtManager.getAccessToken(member.getEmail(), params);
-            String refreshToken = jwtManager.getRefreshToken();
+            String accessToken = jwtManager.generateAccessToken(member.getEmail(), params);
+            String refreshToken = jwtManager.generateRefreshToken();
 
             setCookie(response, "accessToken", accessToken);
             setCookie(response, "refreshToken", refreshToken);
 
-            // redisUtil.setData(findMember.getEmail(), ); // refreshToken 유효 시간
+            jwtManager.saveRefreshTokenInStorage(findMember.getEmail(), refreshToken);
         } else {
             // TODO : 잘못된 사용자 또는 비밀번호 입니다.
             response.setStatus(500);
@@ -69,7 +69,6 @@ public class LoginServiceImpl implements LoginService {
 
     private void setCookie(HttpServletResponse response, String key, String value) {
          Cookie cookie = new Cookie(key, value);
-
          cookie.setPath("/");
          cookie.setHttpOnly(true);
          response.addCookie(cookie);
