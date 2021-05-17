@@ -17,18 +17,19 @@ import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
 import java.util.Base64;
 import java.util.Date;
-import java.util.List;
 import java.util.Map;
 
 @RequiredArgsConstructor
 @Component
-public class JwtProvider {
+public class JwtManager {
 
     @Value("jwt.secret_key")
     private String secretKey;
 
-    // 토큰 유효시간 30분
-    private long tokenValidTime = 30 * 60 * 1000L;
+    private final long ONE_MINUTE = 60 * 1000L;
+    private final long ONE_DAY = ONE_MINUTE * 60 * 24;
+    private final long ACCESS_TOKEN_DURATION = 30 * ONE_MINUTE;
+    private final long REFRESH_TOKEN_DURATION = 30 * ONE_DAY;
 
     private final UserDetailsService userDetailsService;
 
@@ -38,18 +39,26 @@ public class JwtProvider {
         secretKey = Base64.getEncoder().encodeToString(secretKey.getBytes());
     }
 
-    // JWT 토큰 생성
-    public String createToken(String uniqueValue, Map<String,Object> params) {
+    public String getAccessToken(String uniqueValue, Map<String,Object> params) {
         Claims claims = Jwts.claims().setSubject(uniqueValue); // JWT payload 에 저장되는 정보단위
-        // claims.put("roles", roles); // 정보는 key / value 쌍으로 저장된다.
         for(String key : params.keySet()) {
             claims.put(key, params.get(key));
         }
-        Date now = new Date();
+
+        return getJwt(claims, ACCESS_TOKEN_DURATION);
+    }
+
+    public String getRefreshToken() {
+        return getJwt(null, REFRESH_TOKEN_DURATION);
+    }
+
+    public String getJwt(Claims claims, long duration) {
+        Date currentDate = new Date();
+
         return Jwts.builder()
                 .setClaims(claims) // 정보 저장
-                .setIssuedAt(now) // 토큰 발행 시간 정보
-                .setExpiration(new Date(now.getTime() + tokenValidTime)) // set Expire Time
+                .setIssuedAt(currentDate) // 토큰 발행 시간 정보
+                .setExpiration(new Date(currentDate.getTime() + duration)) // set Expire Time
                 .signWith(SignatureAlgorithm.HS256, secretKey)  // 사용할 암호화 알고리즘과 signature 에 들어갈 secret값 세팅
                 .compact();
     }
