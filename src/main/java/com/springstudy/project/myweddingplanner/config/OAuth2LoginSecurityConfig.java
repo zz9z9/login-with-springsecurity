@@ -47,7 +47,7 @@ public class OAuth2LoginSecurityConfig extends WebSecurityConfigurerAdapter {
 
     @Override
     public void configure(WebSecurity web) throws Exception {
-         // web.ignoring().antMatchers("/login","/member/signup","/");
+          web.ignoring().antMatchers("/login","/member/signup","/");
     }
 }
 
