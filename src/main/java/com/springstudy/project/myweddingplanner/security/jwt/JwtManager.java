@@ -1,9 +1,6 @@
 package com.springstudy.project.myweddingplanner.security.jwt;
 
-import io.jsonwebtoken.Claims;
-import io.jsonwebtoken.Jws;
-import io.jsonwebtoken.Jwts;
-import io.jsonwebtoken.SignatureAlgorithm;
+import io.jsonwebtoken.*;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.redis.core.RedisTemplate;
@@ -29,13 +26,13 @@ public class JwtManager {
     @Value("jwt.secret_key")
     private String secretKey;
 
-    public static String ACCESS_TOKEN_NAME = "ACCESS_TOKEN_NAME";
-    public static String REFRESH_TOKEN_NAME = "ACCESS_TOKEN_NAME";
+    public static String ACCESS_TOKEN_NAME = "accessToken";
+    public static String REFRESH_TOKEN_NAME = "refreshToken";
 
     private final long ONE_MINUTE = 60 * 1000L;
     private final long ONE_DAY = ONE_MINUTE * 60 * 24;
-    private final long ACCESS_TOKEN_DURATION = 30 * ONE_MINUTE;
-    private final long REFRESH_TOKEN_DURATION = 30 * ONE_DAY;
+    private final long ACCESS_TOKEN_DURATION = ONE_MINUTE * 30;
+    private final long REFRESH_TOKEN_DURATION = ONE_DAY * 30;
 
     private final UserDetailsService userDetailsService;
     private final RedisTemplate redisTemplate;
@@ -77,7 +74,11 @@ public class JwtManager {
     }
 
     public String getUserIdentifier(String token) {
-        return Jwts.parser().setSigningKey(secretKey).parseClaimsJws(token).getBody().getSubject();
+        try {
+            return Jwts.parser().setSigningKey(secretKey).parseClaimsJws(token).getBody().getSubject();
+        } catch (ExpiredJwtException e) {
+            return e.getClaims().getSubject();
+        }
     }
 
     public String getTokenByKey(HttpServletRequest request, String key) {
