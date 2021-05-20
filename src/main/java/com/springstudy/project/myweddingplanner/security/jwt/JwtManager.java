@@ -112,4 +112,8 @@ public class JwtManager {
         Duration validDuration = Duration.ofSeconds(this.REFRESH_TOKEN_DURATION);
         valueOperations.set(key, refreshToken, validDuration);
     }
+
+    public void deleteRefreshTokenInStorage(String key) {
+        redisTemplate.delete(key);
+    }
 }

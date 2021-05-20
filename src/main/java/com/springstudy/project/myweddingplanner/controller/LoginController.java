@@ -10,11 +10,12 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 
+import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 @RequiredArgsConstructor
 @Controller
-@RequestMapping("/login")
+@RequestMapping("login")
 public class LoginController {
 
     private final LoginService loginService;
@@ -42,5 +43,13 @@ public class LoginController {
         return "redirect:/member/main";
     }
 
+    // csrf 토큰 받기 위해 get 대신 post
+    @PostMapping("/logout")
+    public String logout(HttpServletRequest request, HttpServletResponse response) {
+        String email = loginService.logout(request, response);
+        System.out.println("logout email : "+email);
+
+        return "/login";
+    }
 }
   

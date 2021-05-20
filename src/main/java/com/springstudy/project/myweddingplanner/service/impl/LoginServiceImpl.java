@@ -5,11 +5,14 @@ import com.springstudy.project.myweddingplanner.security.jwt.JwtManager;
 import com.springstudy.project.myweddingplanner.service.spec.LoginService;
 import com.springstudy.project.myweddingplanner.service.spec.MemberService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import javax.servlet.http.Cookie;
+import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import javax.servlet.http.HttpSession;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -38,8 +41,8 @@ public class LoginServiceImpl implements LoginService {
             String accessToken = jwtManager.generateAccessToken(findMember.getEmail(), params);
             String refreshToken = jwtManager.generateRefreshToken();
 
-            setCookie(response, "accessToken", accessToken);
-            setCookie(response, "refreshToken", refreshToken);
+            setCookie(response, JwtManager.ACCESS_TOKEN_NAME, accessToken);
+            setCookie(response, JwtManager.REFRESH_TOKEN_NAME, refreshToken);
 
             jwtManager.saveRefreshTokenInStorage(findMember.getEmail(), refreshToken);
         }
@@ -57,8 +60,8 @@ public class LoginServiceImpl implements LoginService {
             String accessToken = jwtManager.generateAccessToken(member.getEmail(), params);
             String refreshToken = jwtManager.generateRefreshToken();
 
-            setCookie(response, "accessToken", accessToken);
-            setCookie(response, "refreshToken", refreshToken);
+            setCookie(response, JwtManager.ACCESS_TOKEN_NAME, accessToken);
+            setCookie(response, JwtManager.REFRESH_TOKEN_NAME, refreshToken);
 
             jwtManager.saveRefreshTokenInStorage(findMember.getEmail(), refreshToken);
         } else {
@@ -67,11 +70,39 @@ public class LoginServiceImpl implements LoginService {
         }
     }
 
+    @Override
+    public String logout(HttpServletRequest request, HttpServletResponse response) {
+        String accessToken = jwtManager.getTokenByKey(request, JwtManager.ACCESS_TOKEN_NAME);
+        String userEmail = jwtManager.getUserIdentifier(accessToken);
+        HttpSession session = request.getSession(false);
+
+        jwtManager.deleteRefreshTokenInStorage(userEmail);
+
+         SecurityContextHolder.clearContext();
+
+        if(session != null) {
+            session.invalidate();
+        }
+
+        deleteCookie(response, JwtManager.ACCESS_TOKEN_NAME);
+        deleteCookie(response, JwtManager.REFRESH_TOKEN_NAME);
+
+        return userEmail;
+    }
+
     private void setCookie(HttpServletResponse response, String key, String value) {
          Cookie cookie = new Cookie(key, value);
          cookie.setPath("/");
          cookie.setHttpOnly(true);
          response.addCookie(cookie);
+    }
+
+    private void deleteCookie(HttpServletResponse response, String key) {
+        Cookie cookie = new Cookie(key, null);
+        cookie.setPath("/");
+        cookie.setHttpOnly(true);
+        cookie.setMaxAge(0);
+        response.addCookie(cookie);
     }
 
 }

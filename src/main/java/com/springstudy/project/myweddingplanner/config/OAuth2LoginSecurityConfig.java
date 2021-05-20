@@ -38,16 +38,20 @@ public class OAuth2LoginSecurityConfig extends WebSecurityConfigurerAdapter {
                                 .userService(new CustomOAuth2UserService())
                 .and()
                     .defaultSuccessUrl("/login/oauth/success")
-                .and()
-                    .logout()
-                        .logoutSuccessUrl("/")
+//                .and()
+//                    .logout()
+//                        .logoutUrl("/login/logout")
+//                        // .logoutRequestMatcher()
+//                        // .logoutSuccessUrl("/home")
+//                        .invalidateHttpSession(true)
+//                        .deleteCookies(JwtManager.ACCESS_TOKEN_NAME, JwtManager.REFRESH_TOKEN_NAME)
                 .and()
                     .addFilterBefore(new JwtAuthenticationFilter(jwtManager), UsernamePasswordAuthenticationFilter.class);
     }
 
     @Override
     public void configure(WebSecurity web) throws Exception {
-          web.ignoring().antMatchers("/login","/member/signup","/");
+          web.ignoring().antMatchers("/login","/member/signup","/home");
     }
 }
 
