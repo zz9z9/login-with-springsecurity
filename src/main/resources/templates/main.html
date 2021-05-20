@@ -1,10 +1,35 @@
 <!DOCTYPE html>
-<html lang="en">
+<html xmlns:th="http://www.thymeleaf.org" lang="ko">
 <head>
     <meta charset="UTF-8">
+    <meta name="_csrf" th:content="${_csrf.token}"/>
+    <meta name="_csrf_header" th:content="${_csrf.headerName}"/>
+    <script src="http://code.jquery.com/jquery-1.10.2.js"></script>
     <title>Title</title>
 </head>
 <body>
     <h2>메인 페이지 입니다</h2>
+    <button onclick="logout()">로그아웃</button>
+
+    <script th:inline="javascript">
+        function logout() {
+            const token = $("meta[name='_csrf']").attr("content");
+            const header = $("meta[name='_csrf_header']").attr("content");
+
+            $.ajax({
+                url: '/login/logout',
+                beforeSend : function(xhr)
+                {   /*데이터를 전송하기 전에 헤더에 csrf값을 설정한다*/
+                    xhr.setRequestHeader(header, token);
+                },
+                // contentType: 'application/json',
+                // data: JSON.stringify(memberDto),
+                type: "POST",
+            }).done(function () {
+                // alert("회원가입 완료!");
+                window.location = '/home';
+            });
+        }
+    </script>
 </body>
 </html>
